@@ -160,7 +160,7 @@ body .sp-preview{
 	top: 0;
 	width: 31px;
 	height: 30px;
-	background: url('images/logo.svg') no-repeat center center;
+	background: url('images/logo-k4.svg') no-repeat center center;
 	background-size: auto 28px;
 	filter: var(--mobile-menu-toggle-filter);
 }
