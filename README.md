@@ -25,6 +25,19 @@ git merge upstream/master
 
 ## Branding
 Fork zawiera własny branding (np. logo) dostosowany do naszego wdrożenia.
+- Logo jest odwzorowane zgodnie z `k4.pl`:
+  - główny znak: `#ff497c`
+  - akcent kwadratowy: `#a0ce4e`
+  - `pl`: biały
+- Uwaga techniczna: logo w nagłówku nie może mieć filtra odwracającego kolory.
+
+## Eksport
+- Presety eksportu:
+  - JPG: jakość domyślna `80`
+  - WEBP: jakość domyślna `75`
+  - Max dimension: domyślnie `2560 px`
+- Dostępny tryb `Lossless mode` dla PNG/WEBP.
+- Dodany endpoint backendowy optymalizacji: `/api/optimize.php` (z fallbackiem po stronie frontu).
 
 ## Licencja
 Projekt bazowy miniPaint jest na licencji MIT.

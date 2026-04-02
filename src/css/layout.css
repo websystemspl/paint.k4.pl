@@ -162,7 +162,7 @@ body .sp-preview{
 	height: 30px;
 	background: url('images/logo-k4.svg') no-repeat center center;
 	background-size: auto 28px;
-	filter: var(--mobile-menu-toggle-filter);
+	filter: none;
 }
 .logo:hover:after{
 	left: 2px;
