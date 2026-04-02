@@ -1,10 +1,10 @@
 :root {
 	--menu-dropdown-background-color: #ffffff;
-	--menu-dropdown-border-color: #49844d;
-	--menu-dropdown-text-color: #2d2b2b;
-	--menu-dropdown-text-muted-color: #aaaaaa;
-	--menu-dropdown-hover-background-color: #adecab;
-	--menu-dropdown-hover-text-color: #2d2d2d;
+	--menu-dropdown-border-color: #ff497c;
+	--menu-dropdown-text-color: #1f2732;
+	--menu-dropdown-text-muted-color: #6d7784;
+	--menu-dropdown-hover-background-color: #ffe5ee;
+	--menu-dropdown-hover-text-color: #1f2732;
 	--menu-dropdown-divider-color: #e5e5e5;
 }
 
