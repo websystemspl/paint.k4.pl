@@ -270,6 +270,7 @@ class File_save_class {
 			user_response = this.POP.get_params();
 		}
 		var quality = this.get_quality_from_response(user_response, type);
+		var lossless = this.get_lossless_from_response(user_response);
 
 		if (type == 'JPG' || type == 'WEBP' || type == 'AVIF')
 			document.getElementById('popup-tr-quality').style.display = '';
@@ -322,6 +323,11 @@ class File_save_class {
 		if (user_response.calc_size == false || user_response.layers == 'Separated'
 			|| user_response.layers == 'Separated (original types)') {
 
+			document.getElementById('file_size').innerHTML = '-';
+			return;
+		}
+
+		if (lossless == true && (type == 'PNG' || type == 'WEBP')) {
 			document.getElementById('file_size').innerHTML = '-';
 			return;
 		}
@@ -434,6 +440,7 @@ class File_save_class {
 		//detect type
 		var type = this.get_type_from_response(user_response);
 		var quality = this.get_quality_from_response(user_response, type);
+		var lossless = this.get_lossless_from_response(user_response);
 
 		//detect type from file name
 		for(var i in this.SAVE_TYPES) {
@@ -465,6 +472,11 @@ class File_save_class {
 			if (this.Helper.strpos(fname, '.png') == false)
 				fname = fname + ".png";
 
+			if (lossless == true) {
+				this.save_via_server_optimizer(canvas, 'PNG', fname);
+				return;
+			}
+
 			//simple save example
 			//var link = document.createElement('a');
 			//link.download = fname;
@@ -494,6 +506,11 @@ class File_save_class {
 			//check support
 			if (this.check_format_support(canvas, data_header) == false)
 				return false;
+
+			if (lossless == true) {
+				this.save_via_server_optimizer(canvas, 'WEBP', fname);
+				return;
+			}
 
 			canvas.toBlob(function (blob) {
 				filesaver.saveAs(blob, fname);
@@ -608,6 +625,13 @@ class File_save_class {
 		return quality / 100;
 	}
 
+	get_lossless_from_response(user_response) {
+		return user_response.lossless === true
+			|| user_response.lossless === 'true'
+			|| user_response.lossless === 1
+			|| user_response.lossless === '1';
+	}
+
 	get_max_dimension_from_response(user_response) {
 		var max_dimension = parseInt(user_response.max_dimension);
 		if (isNaN(max_dimension) || max_dimension < 1) {
@@ -689,6 +713,51 @@ class File_save_class {
 			canvas: canvas,
 			ctx: ctx,
 		};
+	}
+
+	save_via_server_optimizer(canvas, type, fname) {
+		var _this = this;
+		var input_mime = "image/png";
+		var output_type = (type || 'PNG').toLowerCase();
+		var optimizer_url = './api/optimize.php';
+
+		canvas.toBlob(async function (blob) {
+			if (!blob) {
+				alertify.error('Failed to prepare image for optimization.');
+				return;
+			}
+
+			var form = new FormData();
+			form.append('type', output_type);
+			form.append('file', blob, 'image.' + (output_type == 'webp' ? 'png' : output_type));
+
+			try {
+				var response = await fetch(optimizer_url, {
+					method: 'POST',
+					body: form,
+				});
+				if (!response.ok) {
+					throw new Error('Optimizer responded with ' + response.status);
+				}
+				var optimized_blob = await response.blob();
+				if (!optimized_blob || optimized_blob.size === 0) {
+					throw new Error('Optimizer returned empty file');
+				}
+				filesaver.saveAs(optimized_blob, fname);
+			}
+			catch (e) {
+				// Fallback to local export if backend optimizer is unavailable.
+				alertify.warning('Lossless optimizer unavailable, saved local file.');
+				if (output_type == 'webp') {
+					canvas.toBlob(function (local_blob) {
+						filesaver.saveAs(local_blob, fname);
+					}, "image/webp", 1);
+				}
+				else {
+					filesaver.saveAs(blob, fname);
+				}
+			}
+		}, input_mime);
 	}
 	
 	check_format_support(canvas, data_header, show_error) {
