@@ -46,6 +46,7 @@ class File_save_class {
 		};
 
 		this.default_extension = 'PNG';
+		this.last_save_dialog_type = null;
 	}
 
 	set_events() {
@@ -144,6 +145,8 @@ class File_save_class {
 				{name: "name", title: "File name:", value: file_name},
 				{name: "type", title: "Save as type:", values: save_types, value: save_default},
 				{name: "quality", title: "Quality:", value: 90, range: [1, 100]},
+				{name: "max_dimension", title: "Max dimension (px):", value: 2560},
+				{name: "lossless", title: "Lossless mode:", value: false},
 				{title: "File size:", html: '<span id="file_size">-</span>'},
 				{title: "Resolution:",  value: resolution},
 				{name: "calc_size", title: "Show file size:", value: calc_size_value},
@@ -188,6 +191,8 @@ class File_save_class {
 			},
 		};
 		this.POP.show(settings);
+		this.last_save_dialog_type = null;
+		this.save_dialog_onchange(false);
 
 		document.getElementById("pop_data_name").select();
 
@@ -257,20 +262,29 @@ class File_save_class {
 		var _this = this;
 		var user_response = this.POP.get_params();
 
-		var quality = parseInt(user_response.quality);
-		if (quality > 100 || quality < 1 || isNaN(quality) == true)
-			quality = 90;
-		quality = quality / 100;
-
 		//detect type
-		var type = user_response.type;
-		var parts = type.split(" ");
-		type = parts[0];
+		var type = this.get_type_from_response(user_response);
+		if (this.last_save_dialog_type !== type) {
+			this.apply_export_preset(type);
+			this.last_save_dialog_type = type;
+			user_response = this.POP.get_params();
+		}
+		var quality = this.get_quality_from_response(user_response, type);
 
-		if (type == 'JPG' || type == 'WEBP')
+		if (type == 'JPG' || type == 'WEBP' || type == 'AVIF')
 			document.getElementById('popup-tr-quality').style.display = '';
 		else
 			document.getElementById('popup-tr-quality').style.display = 'none';
+
+		if (type == 'PNG' || type == 'WEBP')
+			document.getElementById('popup-tr-lossless').style.display = '';
+		else
+			document.getElementById('popup-tr-lossless').style.display = 'none';
+
+		if (type != 'JSON' && type != 'GIF')
+			document.getElementById('popup-tr-max_dimension').style.display = '';
+		else
+			document.getElementById('popup-tr-max_dimension').style.display = 'none';
 
 		if (type == 'GIF')
 			document.getElementById('popup-tr-delay').style.display = '';
@@ -313,42 +327,9 @@ class File_save_class {
 		}
 
 		if (type != 'JSON') {
-			//create temp canvas
-			var canvas = document.createElement('canvas');
-			var ctx = canvas.getContext("2d");
-			canvas.width = config.WIDTH;
-			canvas.height = config.HEIGHT;
-			this.disable_canvas_smooth(ctx);
-
-			//ask data
-			if (user_response.layers == 'Selected' && type != 'GIF' && config.layer.type != null) {
-				//only current layer !!!
-				var layer = config.layer;
-
-				var initial_x = null;
-				var initial_y = null;
-				if (layer.x != null && layer.y != null && layer.width != null && layer.height != null) {
-					//change position to top left corner
-					initial_x = layer.x;
-					initial_y = layer.y;
-					layer.x = 0;
-					layer.y = 0;
-
-					canvas.width = layer.width;
-					canvas.height = layer.height;
-				}
-
-				this.Base_layers.convert_layers_to_canvas(ctx, layer.id, false);
-
-				if (initial_x != null) {
-					//restore position
-					layer.x = initial_x;
-					layer.y = initial_y;
-				}
-			}
-			else {
-				this.Base_layers.convert_layers_to_canvas(ctx, null, false);
-			}
+			var export_data = this.get_export_canvas(user_response, type);
+			var canvas = export_data.canvas;
+			var ctx = export_data.ctx;
 		}
 
 		if (type != 'JSON' && (type == 'JPG' || config.TRANSPARENCY == false)) {
@@ -446,19 +427,13 @@ class File_save_class {
 			fname = config.layer.name;
 		}
 
-		var quality = parseInt(user_response.quality);
-		if (quality > 100 || quality < 1 || isNaN(quality) == true)
-			quality = 90;
-		quality = quality / 100;
-
 		var delay = parseInt(user_response.delay);
 		if (delay < 0 || isNaN(delay) == true)
 			delay = 400;
 
 		//detect type
-		var type = user_response.type;
-		var parts = type.split(" ");
-		type = parts[0];
+		var type = this.get_type_from_response(user_response);
+		var quality = this.get_quality_from_response(user_response, type);
 
 		//detect type from file name
 		for(var i in this.SAVE_TYPES) {
@@ -473,24 +448,9 @@ class File_save_class {
 		}
 
 		if (type != 'JSON') {
-			//temp canvas
-			var canvas;
-			var ctx;
-			
-			//get data
-			if (user_response.layers == 'Selected' && type != 'GIF') {
-				canvas = this.Base_layers.convert_layer_to_canvas();
-				ctx = canvas.getContext("2d");
-			}
-			else {
-				canvas = document.createElement('canvas');
-				ctx = canvas.getContext("2d");
-				canvas.width = config.WIDTH;
-				canvas.height = config.HEIGHT;
-				this.disable_canvas_smooth(ctx);
-				
-				this.Base_layers.convert_layers_to_canvas(ctx, null, false);
-			}
+			var export_data = this.get_export_canvas(user_response, type);
+			var canvas = export_data.canvas;
+			var ctx = export_data.ctx;
 		}
 
 		if (type != 'JSON' && (type == 'JPG' || config.TRANSPARENCY == false)) {
@@ -630,6 +590,105 @@ class File_save_class {
 		ctx.rect(0, 0, width, height);
 		ctx.fillStyle = color;
 		ctx.fill();
+	}
+
+	get_type_from_response(user_response) {
+		var type = user_response.type || '';
+		var parts = type.split(" ");
+		return parts[0];
+	}
+
+	get_quality_from_response(user_response, type) {
+		var quality = parseInt(user_response.quality);
+		if (quality > 100 || quality < 1 || isNaN(quality) == true)
+			quality = 90;
+		if (user_response.lossless == true && (type == 'PNG' || type == 'WEBP')) {
+			return 1;
+		}
+		return quality / 100;
+	}
+
+	get_max_dimension_from_response(user_response) {
+		var max_dimension = parseInt(user_response.max_dimension);
+		if (isNaN(max_dimension) || max_dimension < 1) {
+			return 0;
+		}
+		return max_dimension;
+	}
+
+	apply_export_preset(type) {
+		var quality_field = document.getElementById('pop_data_quality');
+		var max_dimension_field = document.getElementById('pop_data_max_dimension');
+		if (!quality_field || !max_dimension_field) {
+			return;
+		}
+
+		if (type == 'JPG') {
+			quality_field.value = 80;
+			max_dimension_field.value = 2560;
+		}
+		else if (type == 'WEBP') {
+			quality_field.value = 75;
+			max_dimension_field.value = 2560;
+		}
+		else if (type == 'PNG') {
+			max_dimension_field.value = 2560;
+		}
+	}
+
+	get_export_canvas(user_response, type) {
+		var canvas = document.createElement('canvas');
+		var ctx = canvas.getContext("2d");
+		canvas.width = config.WIDTH;
+		canvas.height = config.HEIGHT;
+		this.disable_canvas_smooth(ctx);
+
+		if (user_response.layers == 'Selected' && type != 'GIF' && config.layer.type != null) {
+			var layer = config.layer;
+			var initial_x = null;
+			var initial_y = null;
+
+			if (layer.x != null && layer.y != null && layer.width != null && layer.height != null) {
+				initial_x = layer.x;
+				initial_y = layer.y;
+				layer.x = 0;
+				layer.y = 0;
+				canvas.width = layer.width;
+				canvas.height = layer.height;
+			}
+
+			this.Base_layers.convert_layers_to_canvas(ctx, layer.id, false);
+
+			if (initial_x != null) {
+				layer.x = initial_x;
+				layer.y = initial_y;
+			}
+		}
+		else {
+			this.Base_layers.convert_layers_to_canvas(ctx, null, false);
+		}
+
+		var max_dimension = this.get_max_dimension_from_response(user_response);
+		if (type != 'GIF' && type != 'JSON' && max_dimension > 0) {
+			var largest_dimension = Math.max(canvas.width, canvas.height);
+			if (largest_dimension > max_dimension) {
+				var ratio = max_dimension / largest_dimension;
+				var target_width = Math.max(1, Math.round(canvas.width * ratio));
+				var target_height = Math.max(1, Math.round(canvas.height * ratio));
+				var resized_canvas = document.createElement('canvas');
+				var resized_ctx = resized_canvas.getContext("2d");
+				resized_canvas.width = target_width;
+				resized_canvas.height = target_height;
+				resized_ctx.drawImage(canvas, 0, 0, target_width, target_height);
+				canvas = resized_canvas;
+				ctx = resized_ctx;
+			}
+		}
+
+		return {
+			canvas: canvas,
+			ctx: ctx,
+		};
 	}
 	
 	check_format_support(canvas, data_header, show_error) {
