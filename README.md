@@ -31,6 +31,11 @@ Fork zawiera własny branding (np. logo) dostosowany do naszego wdrożenia.
   - `pl`: biały
 - Uwaga techniczna: logo w nagłówku nie może mieć filtra odwracającego kolory.
 
+## Język
+- Domyślny język interfejsu: `pl` (polski).
+- Zachowany język `en` (angielski) jako opcja przełączania.
+- Słownik: `src/js/languages/pl.json`.
+
 ## Eksport
 - Presety eksportu:
   - JPG: jakość domyślna `80`

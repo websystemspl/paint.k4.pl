@@ -23,6 +23,11 @@
   - accent square green `#a0ce4e`
   - `pl` in white
 
+## Language
+- Default UI language: `pl`.
+- English (`en`) must remain available.
+- Polish dictionary file: `src/js/languages/pl.json` (511 keys).
+
 ## Export Features
 - Presets:
   - JPG quality default: `80`
