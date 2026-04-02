@@ -732,10 +732,16 @@ class File_save_class {
 			form.append('file', blob, 'image.' + (output_type == 'webp' ? 'png' : output_type));
 
 			try {
+				var controller = new AbortController();
+				var timeout_id = setTimeout(function () {
+					controller.abort();
+				}, 8000);
 				var response = await fetch(optimizer_url, {
 					method: 'POST',
 					body: form,
+					signal: controller.signal,
 				});
+				clearTimeout(timeout_id);
 				if (!response.ok) {
 					throw new Error('Optimizer responded with ' + response.status);
 				}
@@ -755,6 +761,11 @@ class File_save_class {
 				}
 				else {
 					filesaver.saveAs(blob, fname);
+				}
+			}
+			finally {
+				if (timeout_id) {
+					clearTimeout(timeout_id);
 				}
 			}
 		}, input_mime);
