@@ -22,6 +22,12 @@
   - main mark pink `#ff497c`
   - accent square green `#a0ce4e`
   - `pl` in white
+- Share metadata branding:
+  - `<title>`: `paint.k4.pl - edytor grafiki online`
+  - `og:title`: `paint.k4.pl - edytor grafiki online`
+  - `twitter:title`: `paint.k4.pl - edytor grafiki online`
+  - `og:url`: `https://paint.k4.pl/`
+  - `og:site_name`: `paint.k4.pl`
 
 ## Language
 - Default UI language: `pl`.

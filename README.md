@@ -11,6 +11,10 @@ Projekt źródłowy (upstream):
 
 ## Produkcja
 - URL: `https://paint.k4.pl`
+- SEO/share metadata:
+  - title: `paint.k4.pl - edytor grafiki online`
+  - `og:title` i `twitter:title` zgodne z brandingiem `paint.k4.pl`
+  - opisy (`description`, `og:description`, `twitter:description`) po polsku
 
 ## Rozwój i aktualizacje
 - `origin`: nasz fork (`websystemspl/paint.k4.pl`)
