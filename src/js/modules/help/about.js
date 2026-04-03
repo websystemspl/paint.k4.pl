@@ -9,7 +9,7 @@ class Help_about_class {
 
 	//about
 	about() {
-		var email = 'kontakt@web-systems.pl';	
+		var email = 'biuro@web-systems.pl';	
 		
 		var settings = {
 			title: 'About',

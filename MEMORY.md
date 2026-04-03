@@ -7,8 +7,12 @@
 - Backend optimizer endpoint: `/home/k4/paint.k4.pl/api/optimize.php`
 
 ## Git Remotes
+- Canonical repository URL: `https://github.com/websystemspl/paint.k4.pl`
 - `origin`: `https://github.com/websystemspl/paint.k4.pl.git`
 - `upstream`: `https://github.com/viliusle/miniPaint.git`
+
+## Local Access Notes
+- Local-only access note file: `.access.local.md` (excluded via `.git/info/exclude`).
 
 ## Commit Author Policy
 - Always commit/push as:
