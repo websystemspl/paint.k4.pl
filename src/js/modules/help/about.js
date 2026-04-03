@@ -9,19 +9,20 @@ class Help_about_class {
 
 	//about
 	about() {
-		var email = 'www.viliusl@gmail.com';	
+		var email = 'kontakt@web-systems.pl';	
 		
 		var settings = {
 			title: 'About',
 			params: [
 				{title: "", html: '<img style="width:64px;" class="about-logo" alt="" src="images/logo-k4.svg" />'},
-				{title: "Name:", html: '<span class="about-name">miniPaint</span>'},
+				{title: "Name:", html: '<span class="about-name">paint.k4.pl</span>'},
 				{title: "Version:", value: VERSION},
-				{title: "Description:", value: "Online image editor."},
-				{title: "Author:", value: 'ViliusL'},
+				{title: "Description:", value: "Edytor obrazów online."},
+				{title: "Author:", value: 'Web Systems'},
 				{title: "Email:", html: '<a href="mailto:' + email + '">' + email + '</a>'},
-				{title: "GitHub:", html: '<a href="https://github.com/viliusle/miniPaint">https://github.com/viliusle/miniPaint</a>'},
-				{title: "Website:", html: '<a href="https://viliusle.github.io/miniPaint/">https://viliusle.github.io/miniPaint/</a>'},
+				{title: "GitHub:", html: '<a href="https://github.com/websystemspl/paint.k4.pl">https://github.com/websystemspl/paint.k4.pl</a>'},
+				{title: "Website:", html: '<a href="https://www.web-systems.pl/">https://www.web-systems.pl/</a>'},
+				{title: "Credits:", value: 'Based on miniPaint (MIT License) by ViliusL.'},
 			],
 		};
 		this.POP.show(settings);
