@@ -14,6 +14,10 @@ var template = `
 	<span id="mouse_info_size">-</span> 
 	<span class="id-mouse_info_units"></span>
 	<br />
+	<span class="trn label">Measure:</span>
+	<span id="mouse_info_measure">-</span>
+	<span class="id-mouse_info_units"></span>
+	<br />
 	<span class="trn label">Mouse:</span>
 	<span id="mouse_info_mouse">-</span>
 	<span class="id-mouse_info_units"></span>
@@ -51,14 +55,17 @@ class GUI_information_class {
 		var _this = this;
 		var target = document.getElementById('mouse_info_mouse');
 
-		//show width and height
-		//should use canvas resize API in future
-		document.addEventListener('mousemove', function (e) {
-			_this.show_size();
-		}, false);
+		// Refresh information block while interacting.
+		var refresh_events = ['mousemove', 'mousedown', 'mouseup', 'touchmove', 'touchstart', 'touchend', 'keydown'];
+		for (var i = 0; i < refresh_events.length; i++) {
+			document.addEventListener(refresh_events[i], function () {
+				_this.show_size();
+			}, false);
+		}
 
-		//show current mouse position
+		// Show current mouse position.
 		document.getElementById('canvas_minipaint').addEventListener('mousemove', function (e) {
+			_this.show_size();
 			var global_pos = _this.Base_layers.get_world_coords(e.offsetX, e.offsetY);
 			var mouse_x = Math.ceil(global_pos.x);
 			var mouse_y = Math.ceil(global_pos.y);
@@ -77,6 +84,8 @@ class GUI_information_class {
 	}
 
 	show_size(force) {
+		this.show_measure();
+
 		if(force == undefined && this.last_width == config.WIDTH && this.last_height == config.HEIGHT) {
 			return;
 		}
@@ -98,6 +107,32 @@ class GUI_information_class {
 
 		this.last_width = config.WIDTH;
 		this.last_height = config.HEIGHT;
+	}
+
+	show_measure() {
+		var target = document.getElementById('mouse_info_measure');
+		if (!target) {
+			return;
+		}
+
+		var measure = null;
+		if (this.Base_layers.Base_selection) {
+			measure = this.Base_layers.Base_selection.get_selection();
+		}
+
+		// Fallback for states where selection is not exposed by current tool.
+		if ((measure == null || measure.width == null || measure.height == null) && config.layer) {
+			measure = config.layer;
+		}
+
+		if (measure == null || measure.width == null || measure.height == null) {
+			target.innerHTML = '-';
+			return;
+		}
+
+		var width = this.Helper.get_user_unit(Math.abs(measure.width), this.units, this.resolution);
+		var height = this.Helper.get_user_unit(Math.abs(measure.height), this.units, this.resolution);
+		target.innerHTML = width + ' x ' + height;
 	}
 
 }
